@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # --- Config ---
 st.set_page_config(page_title="SecureLife | Official Portal", layout="wide")
@@ -25,13 +26,11 @@ elif st.session_state.page == "Login":
 elif st.session_state.page == "Inputs":
     st.title("📝 Client Policy Data Entry")
     
-    # BMI Calculator Link
     with st.expander("💡 Click here to calculate BMI"):
         h = st.number_input("Height (m)", 0.5, 2.5, 1.7)
         w = st.number_input("Weight (kg)", 10.0, 200.0, 70.0)
         st.write(f"**Calculated BMI:** {w/(h**2):.2f}")
 
-    # All fields restored
     c1, c2, c3 = st.columns(3)
     with c1:
         st.session_state.age = st.number_input("Age", 18, 100, 25)
@@ -43,7 +42,7 @@ elif st.session_state.page == "Inputs":
         st.session_state.drinker = st.selectbox("Alcohol Consumption", ["No", "Regularly"])
         st.session_state.exercise = st.selectbox("Exercise Frequency", ["Never", "Sometimes", "Regularly"])
     with c3:
-        st.session_state.children = st.slider("Number of Dependents", 0, 5, 0)
+        st.session_state.children = st.number_input("Number of Children", 0, 10, 0)
         st.session_state.plan = st.selectbox("Coverage Tier", ["Basic", "Standard", "Premium"])
         st.session_state.medical = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension"])
         
@@ -52,12 +51,24 @@ elif st.session_state.page == "Inputs":
 # --- Page 4: Results ---
 elif st.session_state.page == "Results":
     st.title("📊 Financial Summary")
-    # Calculation logic...
     plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
-    premium = 5000 + (st.session_state.age * 20) + plan_cost[st.session_state.plan] + \
-              (5000 if st.session_state.smoker == "Yes" else 0) + \
-              (2000 if st.session_state.drinker == "Regularly" else 0) + \
-              (3000 if st.session_state.medical != "None" else 0)
     
-    st.subheader(f"Annual Premium: ₹{premium:,}")
-    if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
+    # Precise Calc
+    base = 5000
+    lifestyle_cost = (5000 if st.session_state.smoker == "Yes" else 0) + (2000 if st.session_state.drinker == "Regularly" else 0)
+    medical_cost = 3000 if st.session_state.medical != "None" else 0
+    premium = base + (st.session_state.age * 20) + (st.session_state.children * 200) + plan_cost[st.session_state.plan] + lifestyle_cost + medical_cost
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.metric("Total Annual Premium", f"₹{premium:,}")
+        if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
+        
+    with col2:
+        # Chart
+        chart_data = pd.DataFrame({
+            "Component": ["Base", "Age", "Children", "Lifestyle", "Plan", "Medical"],
+            "Cost": [base, st.session_state.age * 20, st.session_state.children * 200, lifestyle_cost, plan_cost[st.session_state.plan], medical_cost]
+        })
+        fig = px.bar(chart_data, x="Component", y="Cost", color="Component", title="Premium Distribution")
+        st.plotly_chart(fig, use_container_width=True)
