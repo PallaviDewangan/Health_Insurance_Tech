@@ -53,22 +53,30 @@ elif st.session_state.page == "Results":
     st.title("📊 Financial Summary")
     plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
     
-    # Precise Calc
+    # Calc
     base = 5000
-    lifestyle_cost = (5000 if st.session_state.smoker == "Yes" else 0) + (2000 if st.session_state.drinker == "Regularly" else 0)
-    medical_cost = 3000 if st.session_state.medical != "None" else 0
-    premium = base + (st.session_state.age * 20) + (st.session_state.children * 200) + plan_cost[st.session_state.plan] + lifestyle_cost + medical_cost
+    premium = base + (st.session_state.age * 20) + (st.session_state.children * 200) + \
+              plan_cost[st.session_state.plan] + (5000 if st.session_state.smoker == "Yes" else 0) + \
+              (2000 if st.session_state.drinker == "Regularly" else 0) + (3000 if st.session_state.medical != "None" else 0)
     
     col1, col2 = st.columns([1, 2])
     with col1:
         st.metric("Total Annual Premium", f"₹{premium:,}")
+        
+        # Profile Summary to fill empty space
+        st.markdown("### Client Profile")
+        st.info(f"**Age:** {st.session_state.age} | **Sex:** {st.session_state.sex}\n\n"
+                f"**Plan:** {st.session_state.plan} | **Dependents:** {st.session_state.children}")
+        
         if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
         
     with col2:
         # Chart
         chart_data = pd.DataFrame({
             "Component": ["Base", "Age", "Children", "Lifestyle", "Plan", "Medical"],
-            "Cost": [base, st.session_state.age * 20, st.session_state.children * 200, lifestyle_cost, plan_cost[st.session_state.plan], medical_cost]
+            "Cost": [base, st.session_state.age*20, st.session_state.children*200, 
+                     (5000 if st.session_state.smoker=="Yes" else 0) + (2000 if st.session_state.drinker=="Regularly" else 0), 
+                     plan_cost[st.session_state.plan], (3000 if st.session_state.medical != "None" else 0)]
         })
         fig = px.bar(chart_data, x="Component", y="Cost", color="Component", title="Premium Distribution")
         st.plotly_chart(fig, use_container_width=True)
