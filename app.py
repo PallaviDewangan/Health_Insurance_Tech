@@ -2,83 +2,66 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. Page Config & Professional CSS
-st.set_page_config(page_title="SecureLife | Official Portal", layout="wide", initial_sidebar_state="collapsed")
+# --- Config ---
+st.set_page_config(page_title="SecureLife | Pro", layout="wide")
 st.markdown("""
     <style>
-    .stApp { background-color: #f4f7f9; }
-    div.stButton > button { background-color: #003366 !important; color: white !important; border-radius: 8px !important; }
-    h1, h2 { color: #003366 !important; }
+    .stApp { background-color: #f8f9fa; }
+    h1 { color: #003366; }
+    .css-1r6slp0 { background-color: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
     </style>
 """, unsafe_allow_html=True)
 
 if 'page' not in st.session_state: st.session_state.page = "Welcome"
 
-# --- PAGES ---
+# --- Pages ---
 if st.session_state.page == "Welcome":
     st.title("🛡️ SecureLife Insurance Portal")
-    if st.button("Access Portal →"): st.session_state.page = "Login"; st.rerun()
+    st.write("### Enterprise-Grade Premium Estimation")
+    if st.button("Enter Portal →"): st.session_state.page = "Login"; st.rerun()
 
 elif st.session_state.page == "Login":
-    st.title("🔐 Secure Agent Login")
+    st.title("🔐 Secure Agent Access")
     pwd = st.text_input("Access Code", type="password")
-    if st.button("Authenticate"):
+    if st.button("Login"):
         if pwd == "1234": st.session_state.page = "Predictor"; st.rerun()
-        else: st.error("Incorrect Code.")
+        else: st.error("Access Denied.")
 
 elif st.session_state.page == "Predictor":
-    st.title("📋 Premium Estimation Portal")
+    st.title("📋 Premium Estimation Dashboard")
     
-    # BMI Calculator
-    with st.expander("💡 Need to calculate your BMI?"):
-        h = st.number_input("Height (m)", 1.0, 2.5, 1.7)
-        w = st.number_input("Weight (kg)", 30.0, 200.0, 70.0)
-        st.write(f"**Your BMI is: {w/(h**2):.2f}**")
-
-    # Inputs
-    c1, c2, c3 = st.columns(3)
-    with c1:
+    # Inputs in Sidebar for a CLEAN main view
+    with st.sidebar:
+        st.header("Client Details")
         age = st.number_input("Age", 18, 100, 25)
         bmi = st.number_input("BMI Index", 10.0, 50.0, 25.0)
         sex = st.selectbox("Gender", ["Male", "Female"])
-        blood_group = st.selectbox("Blood Group", ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"])
-    with c2:
-        smoker = st.selectbox("Smoker", ["Yes", "No"])
-        drinker = st.selectbox("Drinking Habit", ["No", "Socially", "Regularly"])
-        exercise = st.selectbox("Exercise", ["Never", "Sometimes", "Regularly"])
-        children = st.slider("Number of Children", 0, 5, 0)
-    with c3:
-        plan = st.selectbox("Coverage Plan", ["Basic", "Standard", "Premium"])
-        medical_cond = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension", "Asthma"])
-        submitted = st.button("Generate Official Quote")
+        plan = st.selectbox("Plan Tier", ["Basic", "Standard", "Premium"])
+        smoker = st.radio("Smoker?", ["No", "Yes"])
+        drinker = st.radio("Drink Alcohol?", ["No", "Regularly"])
+        children = st.slider("Children", 0, 5, 0)
+        medical_cond = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension"])
 
-    if submitted:
-        # Calculation Logic
-        plan_cost = 0
-        if plan == "Standard": plan_cost = 3000
-        elif plan == "Premium": plan_cost = 8000
-        
-        smoker_cost = 7000 if smoker == "Yes" else 0
-        drinker_cost = 3000 if drinker == "Regularly" else 0
-        medical_cost = 4000 if medical_cond != "None" else 0
-        
-        premium = 5000 + (age * 80) + (bmi * 150) + (children * 500) + smoker_cost + drinker_cost + plan_cost + medical_cost
-        
-        st.markdown("---")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Final Annual Premium Quote", f"₹{premium:,}")
-            # Chart
-            breakdown = pd.DataFrame({
-                "Category": ["Base", "Age", "Lifestyle", "Plan", "Medical"], 
-                "Value": [5000, age*80, smoker_cost + drinker_cost, plan_cost, medical_cost]
-            })
-            fig = px.bar(breakdown, x="Category", y="Value", color="Category")
-            st.plotly_chart(fig, use_container_width=True)
-            
-        with col2:
-            st.write("### Policy Summary")
-            st.write(f"Your quote includes a **{plan}** plan.")
-            st.table(pd.DataFrame({"Benefit": ["Hospitalization", "Ambulance", "Dental"], "Status": ["Included", "Included", "Standard"]}))
+    # Main Dashboard Logic
+    # Math: Base 5000 + minor weighted factors
+    plan_cost = {"Basic": 0, "Standard": 2000, "Premium": 5000}
+    premium = 5000 + (age * 50) + (bmi * 100) + (children * 300) + plan_cost[plan] + (5000 if smoker == "Yes" else 0) + (2000 if drinker == "Regularly" else 0)
 
-    if st.button("Logout"): st.session_state.page = "Welcome"; st.rerun()
+    # UI Layout
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.metric("Annual Premium", f"₹{premium:,}")
+        st.write("---")
+        st.subheader("Transparent Breakdown")
+        df = pd.DataFrame({"Factor": ["Base", "Age/BMI", "Lifestyle", "Plan Tier", "Dependents"], 
+                           "Cost": [5000, (age*50 + bmi*100), (7000 if smoker=="Yes" else 0) + (2000 if drinker=="Regularly" else 0), plan_cost[plan], children*300]})
+        fig = px.pie(df, values='Cost', names='Factor', hole=0.4, color_discrete_sequence=px.colors.sequential.RdBu)
+        st.plotly_chart(fig, use_container_width=True)
+        
+    with col2:
+        st.subheader("Policy Benefits")
+        st.info(f"You have selected the **{plan} Plan**.")
+        st.write("✅ Worldwide Coverage\n✅ Cashless Hospitalization\n✅ 24/7 Support")
+        if st.button("Download Policy Brochure"): st.success("Downloading...")
+
+    if st.sidebar.button("Exit Portal"): st.session_state.page = "Welcome"; st.rerun()
