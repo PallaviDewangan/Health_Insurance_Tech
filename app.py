@@ -42,9 +42,9 @@ elif st.session_state.page == "Predictor":
         smoker = st.selectbox("Smoker", ["Yes", "No"])
         region = st.selectbox("Region", ["North", "South", "East", "West"])
         plan_type = st.selectbox("Plan Type", ["Basic", "Standard", "Premium"])
-        medical_cond = st.selectbox("Pre-existing Condition", 
+        medical_cond = st.selectbox("Pre-existing Medical Condition", 
                                     ["None", "Diabetes", "Hypertension", "Asthma", 
-                                     "Thyroid Disorder", "Arthritis", "Heart Disease", 
+                                     "Thyroid Disorder", "Migraine", "Heart Disease", 
                                      "Cancer", "Chronic Kidney Disease", "Sleep Apnea", 
                                      "High Cholesterol"])
 
