@@ -51,27 +51,32 @@ elif st.session_state.page == "Inputs":
 # --- Page 4: Results ---
 elif st.session_state.page == "Results":
     st.title("📊 Financial Summary")
-    plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
     
-    # Calc
-    base = 5000
-    premium = base + (st.session_state.age * 20) + (st.session_state.children * 200) + \
-              plan_cost[st.session_state.plan] + (5000 if st.session_state.smoker == "Yes" else 0) + \
-              (2000 if st.session_state.drinker == "Regularly" else 0) + (3000 if st.session_state.medical != "None" else 0)
+    # ... (Keep your existing calculation logic here) ...
     
     col1, col2 = st.columns([1, 2])
     with col1:
         st.metric("Total Annual Premium", f"₹{premium:,}")
         
-        # Profile Summary to fill empty space
+        # Client Profile Card
         st.markdown("### Client Profile")
         st.info(f"**Age:** {st.session_state.age} | **Sex:** {st.session_state.sex}\n\n"
                 f"**Plan:** {st.session_state.plan} | **Dependents:** {st.session_state.children}")
         
+        # NEW: Plan Inclusions Section
+        st.markdown("### 📋 Policy Inclusions")
+        inclusions = {
+            "Basic": ["Hospitalization", "Ambulance Services"],
+            "Standard": ["Hospitalization", "Ambulance Services", "Dental Care", "Annual Checkup"],
+            "Premium": ["Hospitalization", "Ambulance Services", "Dental Care", "Annual Checkup", "Worldwide Coverage", "Maternity Benefit"]
+        }
+        for item in inclusions.get(st.session_state.plan, []):
+            st.write(f"✅ {item}")
+        
         if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
         
     with col2:
-        # Chart
+        # Chart logic remains the same
         chart_data = pd.DataFrame({
             "Component": ["Base", "Age", "Children", "Lifestyle", "Plan", "Medical"],
             "Cost": [base, st.session_state.age*20, st.session_state.children*200, 
