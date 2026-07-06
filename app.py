@@ -42,7 +42,7 @@ elif st.session_state.page == "Inputs":
         st.session_state.drinker = st.selectbox("Alcohol Consumption", ["No", "Regularly"])
         st.session_state.exercise = st.selectbox("Exercise Frequency", ["Never", "Sometimes", "Regularly"])
     with c3:
-        st.session_state.children = st.number_input("Number of Children", 0, 10, 0)
+        st.session_state.children = st.number_input("Number of Dependents", 0, 10, 0)
         st.session_state.plan = st.selectbox("Coverage Tier", ["Basic", "Standard", "Premium"])
         st.session_state.medical = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension"])
         
@@ -53,7 +53,6 @@ elif st.session_state.page == "Results":
     st.title("📊 Financial Summary")
     plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
     
-    # Calculation logic
     base = 5000
     lifestyle_cost = (5000 if st.session_state.smoker == "Yes" else 0) + (2000 if st.session_state.drinker == "Regularly" else 0)
     medical_cost = 3000 if st.session_state.medical != "None" else 0
@@ -67,15 +66,20 @@ elif st.session_state.page == "Results":
         st.markdown("### Client Profile")
         st.info(f"**Age:** {st.session_state.age} | **Sex:** {st.session_state.sex}\n\n**Plan:** {st.session_state.plan} | **Dependents:** {st.session_state.children}")
         
-        # Policy Inclusions
+        # NEW: Policy Inclusions List
         st.markdown("### 📋 Policy Inclusions")
-        inclusions = {"Basic": ["Hospitalization", "Ambulance"], "Standard": ["Hospitalization", "Ambulance", "Dental"], "Premium": ["Hospitalization", "Ambulance", "Dental", "Worldwide Coverage"]}
-        for item in inclusions.get(st.session_state.plan, []): st.write(f"✅ {item}")
+        inclusions = {
+            "Basic": ["Hospitalization", "Ambulance"], 
+            "Standard": ["Hospitalization", "Ambulance", "Dental Care"], 
+            "Premium": ["Hospitalization", "Ambulance", "Dental Care", "Worldwide Coverage"]
+        }
+        for item in inclusions.get(st.session_state.plan, []):
+            st.write(f"✅ {item}")
         
         if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
         
     with col2:
-        # Distribution Chart
+        # Chart
         chart_data = pd.DataFrame({
             "Component": ["Base", "Age", "Children", "Lifestyle", "Plan", "Medical"],
             "Cost": [base, st.session_state.age*20, st.session_state.children*200, lifestyle_cost, plan_cost[st.session_state.plan], medical_cost]
