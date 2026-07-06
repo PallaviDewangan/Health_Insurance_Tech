@@ -1,38 +1,56 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-# Page Configuration
-st.set_page_config(page_title="SecureLife | Premium Portal", layout="wide")
+# 1. Page Configuration
+st.set_page_config(page_title="SecureLife | Official Portal", layout="wide", initial_sidebar_state="collapsed")
 
-# Custom CSS for Professional UI
+# 2. Custom Professional CSS (Modern Insurance Style)
 st.markdown("""
     <style>
-    .main-card { background-color: #ffffff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .stMetric { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #007bff; }
-    h1 { color: #1e3d59; }
+    /* Theme: Navy Blue and Professional White */
+    .main { background-color: #f4f7f9; }
+    .stApp { color: #2c3e50; }
+    
+    /* Card Styling */
+    .css-1r6slp0 { background-color: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    
+    /* Button Styling */
+    div.stButton > button {
+        background-color: #003366 !important; 
+        color: white !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        padding: 0.5em 2em !important;
+    }
+    
+    /* Headers */
+    h1, h2 { color: #003366 !important; }
     </style>
 """, unsafe_allow_html=True)
 
+# 3. Session State
 if 'page' not in st.session_state: st.session_state.page = "Welcome"
 
-# --- Logic ---
+# --- PAGES ---
 if st.session_state.page == "Welcome":
     st.title("🛡️ SecureLife Insurance Portal")
-    st.write("Professional, Transparent, and Smart Premium Estimation.")
-    if st.button("Start Assessment"): st.session_state.page = "Predictor"; st.rerun()
+    st.write("### Professional coverage estimation powered by AI.")
+    st.write("---")
+    st.info("Experience our transparent, secure, and smart premium calculation engine.")
+    if st.button("Access Secure Portal →"): st.session_state.page = "Login"; st.rerun()
+
+elif st.session_state.page == "Login":
+    st.title("🔐 Secure Agent Login")
+    pwd = st.text_input("Enter Access Code", type="password")
+    if st.button("Authenticate"):
+        if pwd == "1234": st.session_state.page = "Predictor"; st.rerun()
+        else: st.error("Incorrect Access Code.")
 
 elif st.session_state.page == "Predictor":
-    st.title("📋 Policy Premium Estimator")
+    st.title("📋 Premium Estimation Portal")
     
-    # BMI Section
-    with st.expander("💡 Need help calculating BMI?"):
-        h = st.number_input("Height (m)", 1.0, 2.5, 1.7)
-        w = st.number_input("Weight (kg)", 30.0, 200.0, 70.0)
-        st.write(f"Your BMI: **{w/(h**2):.2f}**")
-
-    # Input Form
     with st.container():
-        st.markdown('<div class="main-card">', unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
             age = st.number_input("Age", 18, 100, 25)
@@ -40,30 +58,28 @@ elif st.session_state.page == "Predictor":
             sex = st.selectbox("Gender", ["Male", "Female"])
         with c2:
             smoker = st.selectbox("Smoker", ["Yes", "No"])
-            exercise = st.selectbox("Exercise Frequency", ["Never", "Sometimes", "Regularly"])
-            children = st.slider("Number of Children", 0, 5, 0)
+            drinker = st.selectbox("Drinking Habit", ["No", "Socially", "Regularly"])
+            exercise = st.selectbox("Exercise", ["Never", "Sometimes", "Regularly"])
         with c3:
             plan = st.selectbox("Coverage Plan", ["Basic", "Standard", "Premium"])
-            medical_cond = st.selectbox("Pre-existing Condition", ["None", "Diabetes", "Hypertension", "Asthma", "Heart Disease"])
-            blood_group = st.selectbox("Blood Group", ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"])
-        
-        submitted = st.button("Calculate Professional Quote")
-        st.markdown('</div>', unsafe_allow_html=True)
+            medical_cond = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension", "Asthma"])
+            submitted = st.button("Generate Official Quote")
 
     if submitted:
-        # Professional Pricing Model
-        premium = 5000 + (age * 80) + (bmi * 150) + (children * 500)
-        if smoker == "Yes": premium += 7000
-        if plan == "Standard": premium += 3000
-        elif plan == "Premium": premium += 8000
-        if medical_cond != "None": premium += 4000
+        premium = 5000 + (age * 80) + (bmi * 150) + (7000 if smoker == "Yes" else 0) + (3000 if drinker == "Regularly" else 0)
         
         st.markdown("---")
-        col_res1, col_res2 = st.columns(2)
+        col_res1, col_res2 = st.columns([1, 1])
         with col_res1:
-            st.metric("Estimated Annual Premium", f"₹{premium:,}")
+            st.metric("Final Annual Premium Quote", f"₹{premium:,}")
+            # Professional Chart
+            breakdown = pd.DataFrame({"Category": ["Base", "Age", "Lifestyle", "Medical"], "Value": [5000, age*80, 5000, 4000]})
+            fig = px.bar(breakdown, x="Category", y="Value", color="Category", color_discrete_sequence=px.colors.qualitative.Bold)
+            st.plotly_chart(fig, use_container_width=True)
+            
         with col_res2:
-            st.subheader("Plan Comparison")
-            st.table(pd.DataFrame({"Plan": ["Basic", "Standard", "Premium"], "Coverage": ["5L", "10L", "25L"]}))
+            st.write("### Policy Summary")
+            st.write(f"Your quote includes a **{plan}** plan with comprehensive coverage.")
+            st.table(pd.DataFrame({"Benefit": ["Hospitalization", "Ambulance", "Dental"], "Status": ["Included", "Included", "Standard"]}))
 
     if st.button("Logout"): st.session_state.page = "Welcome"; st.rerun()
