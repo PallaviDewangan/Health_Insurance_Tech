@@ -12,7 +12,7 @@ if 'page' not in st.session_state:
 # --- Main Logic ---
 if st.session_state.page == "Welcome":
     st.title("🏥 Health Insurance AI")
-    st.write("Smart Estimation for Your Future.")
+    st.write("Professional Health Insurance Premium Estimation System.")
     if st.button("Get Started →"):
         st.session_state.page = "Login"
         st.rerun()
@@ -25,11 +25,12 @@ elif st.session_state.page == "Login":
             st.session_state.page = "Predictor"
             st.rerun()
         else:
-            st.error("Incorrect Code!")
+            st.error("Incorrect Code! Try '1234'")
 
 elif st.session_state.page == "Predictor":
     st.title("📋 Premium Calculation")
     
+    # Input Layout
     col1, col2 = st.columns(2)
     with col1:
         age = st.number_input("Age", 18, 100, 25)
@@ -41,7 +42,11 @@ elif st.session_state.page == "Predictor":
         smoker = st.selectbox("Smoker", ["Yes", "No"])
         region = st.selectbox("Region", ["North", "South", "East", "West"])
         plan_type = st.selectbox("Plan Type", ["Basic", "Standard", "Premium"])
-        medical_cond = st.selectbox("Pre-existing Condition", ["None", "Diabetes", "Hypertension", "Asthma"])
+        medical_cond = st.selectbox("Pre-existing Condition", 
+                                    ["None", "Diabetes", "Hypertension", "Asthma", 
+                                     "Thyroid Disorder", "Arthritis", "Heart Disease", 
+                                     "Cancer", "Chronic Kidney Disease", "Sleep Apnea", 
+                                     "High Cholesterol"])
 
     children = st.slider("Number of Children", 0, 5, 0)
     
@@ -57,12 +62,15 @@ elif st.session_state.page == "Predictor":
         st.metric("Estimated Annual Premium", f"₹{premium:,}")
         st.session_state.last_premium = premium
         st.session_state.plan = plan_type
+        st.session_state.cond = medical_cond
         
+        # BMI Graph
         st.subheader("Your Health Insights")
         fig, ax = plt.subplots()
         ax.bar(['Your BMI', 'Healthy BMI'], [bmi, 25], color=['#4CAF50', '#FF5722'])
         st.pyplot(fig)
         
+    # PDF Download
     if 'last_premium' in st.session_state:
         if st.button("Generate & Download PDF Report"):
             pdf = FPDF()
@@ -70,9 +78,10 @@ elif st.session_state.page == "Predictor":
             pdf.set_font("Arial", 'B', 16)
             pdf.cell(200, 10, "Insurance Estimate Report", ln=True, align='C')
             pdf.set_font("Arial", size=12)
-            pdf.cell(200, 10, f"Premium: INR {st.session_state.last_premium:,}", ln=True)
-            pdf.cell(200, 10, f"Plan: {st.session_state.plan}", ln=True)
-            pdf.cell(200, 10, f"Condition: {medical_cond}", ln=True)
+            pdf.ln(10)
+            pdf.cell(200, 10, f"Premium Amount: INR {st.session_state.last_premium:,}", ln=True)
+            pdf.cell(200, 10, f"Selected Plan: {st.session_state.plan}", ln=True)
+            pdf.cell(200, 10, f"Condition Reported: {st.session_state.cond}", ln=True)
             pdf_data = pdf.output(dest='S').encode('latin-1')
             st.download_button("Download Report Now", pdf_data, "report.pdf", "application/pdf")
 
