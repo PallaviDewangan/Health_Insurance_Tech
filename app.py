@@ -36,20 +36,23 @@ elif st.session_state.page == "Predictor":
         bmi = st.number_input("BMI", 10.0, 50.0, 25.0)
         sex = st.selectbox("Sex", ["Male", "Female"])
         blood_group = st.selectbox("Blood Group", ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"])
+        exercise = st.selectbox("Exercise Regularly?", ["Yes", "No"])
     with col2:
         smoker = st.selectbox("Smoker", ["Yes", "No"])
         region = st.selectbox("Region", ["North", "South", "East", "West"])
         plan_type = st.selectbox("Plan Type", ["Basic", "Standard", "Premium"])
-        pre_existing = st.checkbox("Pre-existing Medical Condition")
+        medical_cond = st.selectbox("Pre-existing Condition", ["None", "Diabetes", "Hypertension", "Asthma"])
 
     children = st.slider("Number of Children", 0, 5, 0)
     
     if st.button("Calculate My Premium"):
+        # Premium Calculation Logic
         premium = 15000 + (age * 150) + (bmi * 400) + (children * 3000)
         if smoker == "Yes": premium += 25000
         if plan_type == "Standard": premium += 5000
         elif plan_type == "Premium": premium += 15000
-        if pre_existing: premium += 10000
+        if exercise == "No": premium += 3000
+        if medical_cond != "None": premium += 10000
         
         st.metric("Estimated Annual Premium", f"₹{premium:,}")
         st.session_state.last_premium = premium
@@ -69,8 +72,9 @@ elif st.session_state.page == "Predictor":
             pdf.set_font("Arial", size=12)
             pdf.cell(200, 10, f"Premium: INR {st.session_state.last_premium:,}", ln=True)
             pdf.cell(200, 10, f"Plan: {st.session_state.plan}", ln=True)
+            pdf.cell(200, 10, f"Condition: {medical_cond}", ln=True)
             pdf_data = pdf.output(dest='S').encode('latin-1')
-            st.download_button("Download Now", pdf_data, "report.pdf", "application/pdf")
+            st.download_button("Download Report Now", pdf_data, "report.pdf", "application/pdf")
 
     if st.button("Logout"):
         st.session_state.page = "Welcome"
