@@ -2,87 +2,60 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# --- Config ---
-st.set_page_config(page_title="SecureLife | Official Portal", layout="wide")
+st.set_page_config(page_title="SecureLife | Pro", layout="wide")
 
-if 'page' not in st.session_state: st.session_state.page = "Welcome"
+# Custom CSS for a modern "Website" feel
+st.markdown("""
+    <style>
+    .hero { background: #003366; color: white; padding: 20px; border-radius: 10px; }
+    .card { background: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e6e6e6; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+    </style>
+""", unsafe_allow_html=True)
 
-# --- Page 1: Welcome ---
-if st.session_state.page == "Welcome":
-    st.title("🛡️ SecureLife | Insurance Solutions")
-    st.write("---")
-    st.write("Streamline your premium calculations and manage client policy requests through our secure infrastructure.")
-    if st.button("Proceed to Authentication →"): st.session_state.page = "Login"; st.rerun()
+if 'page' not in st.session_state: st.session_state.page = "Login"
 
-# --- Page 2: Login ---
-elif st.session_state.page == "Login":
-    st.title("🔐 SecureLife Agent Login")
-    pwd = st.text_input("Enter Access Code", type="password")
-    if st.button("Access Portal"):
-        if pwd == "1234": st.session_state.page = "Inputs"; st.rerun()
-        else: st.error("Invalid Code.")
+# --- LOGIN PAGE ---
+if st.session_state.page == "Login":
+    st.markdown("<div class='hero'><h1>SecureLife Agent Portal</h1></div>", unsafe_allow_html=True)
+    if st.text_input("Access Code", type="password") == "1234":
+        if st.button("Enter Dashboard"): st.session_state.page = "Dashboard"; st.rerun()
 
-# --- Page 3: Inputs ---
-elif st.session_state.page == "Inputs":
-    st.title("📝 Client Policy Data Entry")
-    
-    with st.expander("💡 Click here to calculate BMI"):
-        h = st.number_input("Height (m)", 0.5, 2.5, 1.7)
-        w = st.number_input("Weight (kg)", 10.0, 200.0, 70.0)
-        st.write(f"**Calculated BMI:** {w/(h**2):.2f}")
-
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.session_state.age = st.number_input("Age", 18, 100, 25)
-        st.session_state.bmi = st.number_input("BMI Index", 10.0, 50.0, 25.0)
-        st.session_state.sex = st.selectbox("Sex", ["Male", "Female"])
-        st.session_state.blood = st.selectbox("Blood Group", ["A+", "A-", "B+", "B-", "O+", "O-"])
-    with c2:
-        st.session_state.smoker = st.selectbox("Smoker Status", ["No", "Yes"])
-        st.session_state.drinker = st.selectbox("Alcohol Consumption", ["No", "Regularly"])
-        st.session_state.exercise = st.selectbox("Exercise Frequency", ["Never", "Sometimes", "Regularly"])
-    with c3:
-        st.session_state.children = st.number_input("Number of Dependents", 0, 10, 0)
-        st.session_state.plan = st.selectbox("Coverage Tier", ["Basic", "Standard", "Premium"])
-        st.session_state.medical = st.selectbox("Medical History", ["None", "Diabetes", "Hypertension"])
-        
-    if st.button("Process Quote Request →"): st.session_state.page = "Results"; st.rerun()
-
-# --- Page 4: Results ---
-elif st.session_state.page == "Results":
-    st.title("📊 Financial Summary")
+# --- MAIN DASHBOARD ---
+elif st.session_state.page == "Dashboard":
+    # 1. Calculation Logic (Reactive)
     plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
     
-    base = 5000
-    lifestyle_cost = (5000 if st.session_state.smoker == "Yes" else 0) + (2000 if st.session_state.drinker == "Regularly" else 0)
-    medical_cost = 3000 if st.session_state.medical != "None" else 0
-    premium = base + (st.session_state.age * 20) + (st.session_state.children * 200) + plan_cost[st.session_state.plan] + lifestyle_cost + medical_cost
+    # Defaults
+    if 'age' not in st.session_state: st.session_state.age = 25
     
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.metric("Total Annual Premium", f"₹{premium:,}")
-        
-        # Client Profile
-        st.markdown("### Client Profile")
-        st.info(f"**Age:** {st.session_state.age} | **Sex:** {st.session_state.sex}\n\n**Plan:** {st.session_state.plan} | **Dependents:** {st.session_state.children}")
-        
-        # NEW: Policy Inclusions List
-        st.markdown("### 📋 Policy Inclusions")
-        inclusions = {
-            "Basic": ["Hospitalization", "Ambulance"], 
-            "Standard": ["Hospitalization", "Ambulance", "Dental Care"], 
-            "Premium": ["Hospitalization", "Ambulance", "Dental Care", "Worldwide Coverage"]
-        }
-        for item in inclusions.get(st.session_state.plan, []):
-            st.write(f"✅ {item}")
-        
-        if st.button("← Return to Entry"): st.session_state.page = "Inputs"; st.rerun()
-        
-    with col2:
-        # Chart
-        chart_data = pd.DataFrame({
-            "Component": ["Base", "Age", "Children", "Lifestyle", "Plan", "Medical"],
-            "Cost": [base, st.session_state.age*20, st.session_state.children*200, lifestyle_cost, plan_cost[st.session_state.plan], medical_cost]
-        })
-        fig = px.bar(chart_data, x="Component", y="Cost", color="Component", title="Premium Distribution")
-        st.plotly_chart(fig, use_container_width=True)
+    # --- SIDEBAR (The Results Hub) ---
+    with st.sidebar:
+        st.header("💰 Live Quote")
+        # Logic
+        premium = 5000 + (st.session_state.age * 20) + plan_cost.get(st.session_state.plan, 0)
+        st.metric("Annual Premium", f"₹{premium:,}")
+        st.write("---")
+        st.write("### Plan Inclusions")
+        st.write("✅ Hospitalization\n✅ Ambulance\n✅ Tax Benefits")
+        if st.button("Logout"): st.session_state.page = "Login"; st.rerun()
+
+    # --- MAIN CONTENT AREA ---
+    st.title("Client Assessment Form")
+    
+    with st.container():
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.session_state.age = st.number_input("Client Age", 18, 100, 25)
+            st.session_state.plan = st.selectbox("Coverage Plan", ["Basic", "Standard", "Premium"])
+            st.session_state.bmi = st.slider("BMI Index", 15, 40, 22)
+        with col2:
+            st.session_state.smoker = st.radio("Smoker Status", ["No", "Yes"])
+            st.session_state.medical = st.selectbox("Medical Condition", ["None", "Diabetes", "Hypertension"])
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # --- CHART AREA ---
+    st.subheader("Visual Analysis")
+    chart_data = pd.DataFrame({"Category": ["Base", "Age", "Plan", "Lifestyle"], "Cost": [5000, st.session_state.age*20, plan_cost[st.session_state.plan], 5000 if st.session_state.smoker == "Yes" else 0]})
+    fig = px.bar(chart_data, x="Category", y="Cost", color="Category")
+    st.plotly_chart(fig, use_container_width=True)
