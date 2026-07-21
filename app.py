@@ -1,60 +1,59 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
+import components.sidebar as sidebar
 
-# --- Config & Initialization ---
-st.set_page_config(page_title="SecureLife | Official Portal", layout="wide")
+st.set_page_config(
+    page_title="Health & Insurance Tech",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Initialize session state variables to avoid AttributeError
-defaults = {
-    'age': 25, 'bmi': 25.0, 'sex': 'Male', 'plan': 'Basic', 
-    'smoker': 'No', 'medical': 'None', 'children': 0, 'page': 'Login'
-}
-for key, value in defaults.items():
-    if key not in st.session_state: st.session_state[key] = value
-
-# --- CSS for "Website" Feel ---
+# Custom High-Energy UI & Modern CSS Overhaul
 st.markdown("""
     <style>
-    .card { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6; }
-    .hero { background: #003366; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    .main {background-color: #F4F7F6;}
+    .stButton>button {
+        background: linear-gradient(135deg, #0072FF 0%, #00C6FF 100%);
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 114, 255, 0.4);
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIN PAGE ---
-if st.session_state.page == "Login":
-    st.markdown("<div class='hero'><h1>SecureLife Agent Portal</h1></div>", unsafe_allow_html=True)
-    if st.text_input("Enter Access Code", type="password") == "1234":
-        if st.button("Enter Dashboard"): st.session_state.page = "Dashboard"; st.rerun()
+# Initialize Session States
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "home"
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
-# --- DASHBOARD PAGE ---
-elif st.session_state.page == "Dashboard":
-    # 1. Sidebar (Persistent Results)
-    with st.sidebar:
-        st.header("💰 Live Quote")
-        plan_cost = {"Basic": 0, "Standard": 3000, "Premium": 8000}
-        premium = 5000 + (st.session_state.age * 20) + plan_cost.get(st.session_state.plan, 0)
-        st.metric("Annual Premium", f"₹{premium:,}")
-        st.write("---")
-        st.write("### Policy Inclusions")
-        inclusions = {"Basic": ["Hospitalization", "Ambulance"], "Standard": ["Hospitalization", "Dental"], "Premium": ["World Coverage"]}
-        for item in inclusions.get(st.session_state.plan, []): st.write(f"✅ {item}")
-        if st.button("Logout"): st.session_state.page = "Login"; st.rerun()
+# Render Sidebar Navigation
+sidebar.render()
 
-    # 2. Main Content
-    st.title("Client Assessment")
-    with st.container():
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            st.session_state.age = st.number_input("Client Age", 18, 100, st.session_state.age)
-            st.session_state.plan = st.selectbox("Coverage Plan", ["Basic", "Standard", "Premium"], index=["Basic", "Standard", "Premium"].index(st.session_state.plan))
-        with col2:
-            st.session_state.smoker = st.radio("Smoker Status", ["No", "Yes"], index=["No", "Yes"].index(st.session_state.smoker))
-            st.session_state.children = st.number_input("Dependents", 0, 10, st.session_state.children)
-        st.markdown("</div>", unsafe_allow_html=True)
+# Page Routing Engine
+page = st.session_state.current_page
 
-    # 3. Chart
-    st.subheader("Cost Breakdown")
-    fig = px.bar(x=["Base", "Age", "Plan"], y=[5000, st.session_state.age*20, plan_cost.get(st.session_state.plan, 0)])
-    st.plotly_chart(fig, use_container_width=True)
+if page == "home":
+    import pages.home as home
+    home.render()
+elif page == "register":
+    import pages.register as register
+    register.render()
+elif page == "login":
+    import pages.login as login
+    login.render()
+elif page == "calculator":
+    import pages.calculator as calculator
+    calculator.render()
+elif page == "result":
+    import calculator.result as result_page
+    result_page.render()
