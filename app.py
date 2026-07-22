@@ -17,7 +17,6 @@ st.markdown("""
         [data-testid="stSidebar"] {display: none;}
         [data-testid="collapsedControl"] {display: none;}
         .main { background-color: #f8f9fa; }
-        .stButton>button { border-radius: 6px; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -29,7 +28,7 @@ if 'username' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state['page'] = 'home'
 
-# --- Page Router ---
+# --- Page Router Controller ---
 current_page = st.session_state['page']
 
 if current_page == 'home':
@@ -49,11 +48,11 @@ elif current_page == 'calculator':
         st.warning("⚠️ Please sign in or register your account first to access the calculator.")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🔑 Go to Sign In", use_container_width=True):
+            if st.button("🔑 Go to Sign In"):
                 st.session_state['page'] = 'login'
                 st.rerun()
         with col2:
-            if st.button("📝 Go to Register", use_container_width=True):
+            if st.button("📝 Go to Register"):
                 st.session_state['page'] = 'register'
                 st.rerun()
     else:
@@ -61,7 +60,6 @@ elif current_page == 'calculator':
         calculator.render()
 
 elif current_page == 'result':
-    # Report & Analytics Screen with Graphs
     st.markdown("""
         <div style="background: #003366; color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 25px;">
             <h1>📊 Comprehensive Risk & Insurance Analysis Report</h1>
@@ -102,9 +100,7 @@ elif current_page == 'result':
     st.markdown("---")
     st.subheader("📈 Underwriting Rule Parameter Breakdown")
 
-    # Render Plotly Charts (Python 3.14 Compatible)
     chart_col1, chart_col2 = st.columns(2)
-
     with chart_col1:
         st.markdown("##### Premium Component Contribution Chart")
         fig_bar = go.Figure(data=[
@@ -129,11 +125,11 @@ elif current_page == 'result':
     st.markdown("---")
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("🔄 Modify Input Parameters", use_container_width=True):
+        if st.button("🔄 Modify Input Parameters"):
             st.session_state['page'] = 'calculator'
             st.rerun()
     with c2:
-        if st.button("🏠 Return to Dashboard Home", use_container_width=True):
+        if st.button("🏠 Return to Dashboard Home"):
             st.session_state['page'] = 'home'
             st.rerun()
 else:
